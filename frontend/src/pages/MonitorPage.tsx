@@ -179,11 +179,16 @@ export default function MonitorPage() {
                 hint="Trigger a run to watch agents collaborate in real time."
               />
             )}
-            {feed.map((m) => {
+            {feed.map((m, i) => {
               const tm = TYPE_META[m.type]
               const hasCost = m.cost_usd > 0 || m.input_tokens > 0 || m.output_tokens > 0
+              const delay = Math.min(i, 14) * 18
               return (
-                <div key={m.id} className={`event event-${m.type}`}>
+                <div
+                  key={m.id}
+                  className={`event event-${m.type}`}
+                  style={{ animationDelay: `${delay}ms` }}
+                >
                   <div className="event-rail" />
                   <div className="event-body">
                     <div className="event-top">
@@ -193,7 +198,7 @@ export default function MonitorPage() {
                         {m.recipient && (
                           <>
                             {' '}
-                            <span className="muted">→</span> {m.recipient}
+                            <span className="arrow">→</span> {m.recipient}
                           </>
                         )}
                       </span>

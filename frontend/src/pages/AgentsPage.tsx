@@ -86,8 +86,12 @@ export default function AgentsPage() {
       )}
 
       <div className="agent-grid">
-        {agents.map((a) => (
-          <div key={a.id} className="card agent-card">
+        {agents.map((a, i) => (
+          <div
+            key={a.id}
+            className="card agent-card"
+            style={{ animationDelay: `${Math.min(i, 12) * 35}ms` }}
+          >
             <div className="agent-card-head">
               <div className="agent-avatar">{a.name.slice(0, 2).toUpperCase()}</div>
               <div className="agent-id">

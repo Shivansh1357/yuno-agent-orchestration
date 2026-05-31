@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Documentation of Understanding — Yuno AI Engineer Assessment</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Newsreader:wght@400;500&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#15181d; --muted:#5b6470; --line:#e4e7ec;
+    --accent:#0c9f77; --accent-soft:#e7f7f1; --amber:#b9770f; --red:#c0392b;
+    --bg:#ffffff;
+  }
+  *{box-sizing:border-box}
+  @page{ size:A4; margin:18mm 16mm; }
+  html,body{margin:0;padding:0}
+  body{
+    font-family:"Newsreader",Georgia,serif; color:var(--ink); background:var(--bg);
+    font-size:11.2pt; line-height:1.6; -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:760px;margin:0 auto;padding:8mm 2mm}
+  h1,h2,h3{font-family:"Fraunces",Georgia,serif;line-height:1.18;letter-spacing:-.01em;color:#0c0e12}
+  h1{font-size:25pt;margin:0 0 2pt;font-weight:600}
+  .sub{font-family:"Fraunces",serif;font-size:13pt;color:var(--accent);font-weight:600;margin:0 0 14pt}
+  h2{font-size:15pt;margin:22pt 0 6pt;padding-top:10pt;border-top:1px solid var(--line)}
+  h3{font-size:12pt;margin:14pt 0 4pt}
+  p,li{color:#23282f}
+  .meta{font-family:"JetBrains Mono",monospace;font-size:8.6pt;color:var(--muted);
+        background:#f7f8fa;border:1px solid var(--line);border-radius:8px;padding:9px 12px;margin:0 0 6pt}
+  code,.mono{font-family:"JetBrains Mono",monospace;font-size:9pt;background:#f4f6f8;
+        border:1px solid var(--line);border-radius:5px;padding:1px 5px;color:#0c0e12}
+  pre{font-family:"JetBrains Mono",monospace;font-size:8.4pt;line-height:1.5;background:#0e1013;color:#d7e2dd;
+        border-radius:10px;padding:14px 16px;overflow:auto;white-space:pre}
+  table{width:100%;border-collapse:collapse;margin:8pt 0;font-size:10pt}
+  th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-family:"Fraunces",serif;font-weight:600;color:#0c0e12;background:#fafbfc}
+  td:first-child{font-weight:500}
+  .tag{display:inline-block;font-family:"JetBrains Mono",monospace;font-size:8pt;
+        background:var(--accent-soft);color:var(--accent);border-radius:6px;padding:2px 7px}
+  ul{margin:6pt 0;padding-left:18px} li{margin:3pt 0}
+  strong{color:#0c0e12}
+  .rule{height:3px;width:54px;background:var(--accent);border-radius:3px;margin:10pt 0 0}
+  .foot{margin-top:18pt;padding-top:8pt;border-top:1px solid var(--line);
+        font-family:"JetBrains Mono",monospace;font-size:8pt;color:var(--muted)}
+  a{color:var(--accent);text-decoration:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Documentation of Understanding</h1>
+  <p class="sub">AI Agent Orchestration Platform — Yuno AI Engineer Assessment</p>
+  <div class="rule"></div>
+  <p class="meta">Author: Shivansh Tripathi &nbsp;·&nbsp; Date: 31 May 2026 &nbsp;·&nbsp; Repository: see submission &nbsp;·&nbsp; Live demo: see submission</p>
+
+  <h2>1. How I read the problem</h2>
+  <p>The brief asks for a <strong>platform to create, configure, and orchestrate AI agents</strong> — not a single chatbot. Stripped to its essence, a strong submission must prove four things are <em>real</em>, not mocked:</p>
+  <ul>
+    <li><strong>Configurability</strong> — define an agent's whole behavior (personality, model, tools, memory, schedule, guardrails, limits) and compose agents into workflows, from a UI.</li>
+    <li><strong>A real runtime</strong> — agents actually execute: call an LLM, run real tools in a loop, and hand work to each other to finish a task autonomously.</li>
+    <li><strong>Reachability</strong> — at least one agent is reachable by a human over an external messaging channel, conversationally.</li>
+    <li><strong>Observability</strong> — you can watch it happen (logs, inter-agent messages, token/cost), and history is persisted and visible.</li>
+  </ul>
+  <p>Everything else (templates, tests, docs, single-command local run) serves to make those four credible and demonstrable. I treated the <strong>grading weights</strong> as the spec: <em>working end-to-end demo (40%)</em> and <em>architecture / code quality (30%)</em> dominate, so I optimized for a demo that genuinely runs and a codebase whose layering survives a code review.</p>
+
+  <h3>The insight that shaped the design</h3>
+  <p>A “visual workflow builder with conditions and feedback loops” and “a real runtime” are the <em>same object</em> if you choose the runtime well. So I made <strong>the diagram the program</strong>: the graph a user draws in the UI <em>is</em> the executable graph the runtime runs — no translation layer, nothing to drift. That single decision keeps the system honest.</p>
+
+  <h2>2. Requirement → how it's satisfied</h2>
+  <table>
+    <tr><th>Requirement</th><th>Approach</th></tr>
+    <tr><td>Agent CRUD + rich config</td><td><span class="mono">Agent</span> model with 12+ configurable dimensions; full editor in the UI</td></tr>
+    <tr><td>Real runtime executing agent logic</td><td><strong>LangGraph</strong>: each node is a real ReAct agent (<span class="mono">create_react_agent</span>) running real tools</td></tr>
+    <tr><td>Visual builder w/ conditions + feedback loops</td><td>React Flow canvas → compiled 1:1 into a LangGraph <span class="mono">StateGraph</span>; conditional edges = conditions, back-edges = loops</td></tr>
+    <tr><td>≥ 2 workflow templates</td><td><em>Content Pipeline</em> (Researcher→Writer→Editor with a <span class="mono">REVISE</span> feedback loop) and <em>Support Triage</em> (conditional routing to Billing/Tech)</td></tr>
+    <tr><td>Async agent-to-agent comms</td><td>In-process <strong>EventBus</strong>: agents emit messages; the engine routes — never direct calls</td></tr>
+    <tr><td>External channel</td><td><strong>Telegram</strong> (long-polling, so no public webhook needed for local-first)</td></tr>
+    <tr><td>Persisted, visible history</td><td>One unified <span class="mono">Message</span> stream (chat / agent / tool / log / error), shown in Monitor + Chat</td></tr>
+    <tr><td>Live monitoring (logs, msgs, token/cost)</td><td>WebSocket <span class="mono">/ws/monitor</span>; cost from each model's real <span class="mono">usage_metadata</span></td></tr>
+    <tr><td>Runs fully local, one command</td><td><span class="mono">docker compose up --build</span> (multi-stage image serves UI from the backend)</td></tr>
+  </table>
+
+  <h2>3. Architecture, and why it's shaped this way</h2>
+  <p>Three layers with a single contract between them — the separation the brief explicitly grades:</p>
+  <ul>
+    <li><strong>UI layer</strong> — React SPA + FastAPI routers. The HTTP/WebSocket API is the <em>only</em> thing the UI knows about the system.</li>
+    <li><strong>Agent runtime</strong> — <span class="mono">app/runtime/</span> (LangGraph). Knows nothing about HTTP. Compiles stored workflow graphs into <span class="mono">StateGraph</span>s and executes ReAct agents with tools, memory, guardrails, and token/cost accounting.</li>
+    <li><strong>Persistence</strong> — SQLModel over SQLite. <span class="mono">DATABASE_URL</span> is the single switch to Postgres.</li>
+  </ul>
+  <pre>React UI ──HTTP/WS──&gt; FastAPI ──&gt; Agent Runtime (LangGraph) ──&gt; LLM provider(s)
+                          │              │  EventBus (async msgs + live monitor)
+                          └──────────────┴──&gt; Persistence (SQLModel / SQLite)
+                 Telegram (long-poll) ──&gt; dispatch_inbound ──&gt; same runtime</pre>
+  <p><strong>How a multi-agent task runs:</strong> the workflow's stored graph <span class="mono">{entry, nodes, edges}</span> compiles into a LangGraph <span class="mono">StateGraph</span>. Each node runs an agent as a genuine ReAct loop; each edge carries a condition (<span class="mono">always</span> / <span class="mono">contains:X</span> / <span class="mono">not_contains:X</span>). A back-edge (e.g. Editor → Writer while the reply contains <span class="mono">REVISE</span>) is a real feedback loop, bounded by a per-node visit cap + global recursion limit so it always terminates. Every hand-off is persisted <em>and</em> streamed to the monitor through one code path — which is exactly what makes the agent-to-agent communication both <strong>asynchronous</strong> and <strong>observable</strong>.</p>
+
+  <h2>4. Key decisions and trade-offs</h2>
+  <p>Full set in <span class="mono">docs/adr/</span>. The load-bearing ones:</p>
+  <ul>
+    <li><strong>Runtime — LangGraph.</strong> Its node / conditional-edge / cycle model maps 1:1 onto “visual builder with conditions and feedback loops,” and <span class="mono">create_react_agent</span> gives a real tool-executing loop. CrewAI/AutoGen were weaker on first-class conditional branching; a custom runtime meant reinventing routing + recursion safety.</li>
+    <li><strong>Multi-provider LLM, routed by model id.</strong> Agents run on <strong>Anthropic Claude</strong> <em>or</em> <strong>AWS Bedrock</strong> (Amazon Nova / Llama); the provider is derived from the model id, so no provider/model drift. Verified live on both — directly serving “configurability.”</li>
+    <li><strong>Telegram via long-polling.</strong> Lowest-friction “talk to your agent from your phone” with <strong>no public webhook</strong>, satisfying local-first. The <span class="mono">Channel</span> abstraction keeps Slack/WhatsApp a small addition; webhooks are the right move once hosted (a config switch).</li>
+    <li><strong>SQLite + SQLModel.</strong> Zero-setup local persistence; one env var to move to Postgres.</li>
+    <li><strong>In-process EventBus.</strong> One mechanism serves async comms <em>and</em> live monitoring; history and the live stream are the same data. Redis pub/sub for multi-node scale, behind the same interface.</li>
+    <li><strong>Guardrails + cost in the runtime.</strong> Limits (<span class="mono">max_iterations</span>, recursion cap) and guardrails (blocked keywords, per-run cost ceiling) are enforced where execution happens — the only place that can stop a runaway loop or spend.</li>
+  </ul>
+
+  <h2>5. What I would do next</h2>
+  <ul>
+    <li><strong>Scheduler:</strong> agents store a <span class="mono">schedule_cron</span>; wiring APScheduler to auto-trigger them is the next step.</li>
+    <li><strong>Horizontal scale:</strong> EventBus → Redis pub/sub, runs → a task queue, Telegram → webhooks behind a load balancer.</li>
+    <li><strong>Auth &amp; multi-tenancy:</strong> OIDC + per-user scoping for a hosted product (omitted by design for a local-first single-user demo).</li>
+    <li><strong>Richer guardrails:</strong> PII filters and per-workflow tool allow-lists on the same hook.</li>
+  </ul>
+
+  <h2>6. How to evaluate this submission</h2>
+  <ul>
+    <li><strong>Run it:</strong> <span class="mono">cp .env.example .env</span> (add an LLM key — Bedrock or Anthropic), then <span class="mono">docker compose up --build</span> → <span class="mono">http://localhost:8000</span>. Seeded with 7 agents + 2 workflows.</li>
+    <li><strong>See the multi-agent demo:</strong> Workflows → <em>Content Pipeline</em> → Run; watch the Monitor as Researcher → Writer → Editor loops on <span class="mono">REVISE</span> then <span class="mono">APPROVED</span>, with live token/cost.</li>
+    <li><strong>Talk to an agent:</strong> message the Telegram bot; the conversation appears in the UI.</li>
+    <li><strong>Read the reasoning:</strong> <span class="mono">README.md</span>, <span class="mono">docs/adr/</span>, <span class="mono">docs/PRD.md</span>. Critical paths are covered by tests.</li>
+  </ul>
+
+  <div class="foot">Yuno AI Engineer Assessment · AI Agent Orchestration Platform · Documentation of Understanding · Shivansh Tripathi · 2026-05-31</div>
+</div>
+</body>
+</html>

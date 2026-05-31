@@ -104,8 +104,12 @@ export default function WorkflowsPage() {
       )}
 
       <div className="wf-grid">
-        {workflows.map((w) => (
-          <div key={w.id} className="card wf-card">
+        {workflows.map((w, i) => (
+          <div
+            key={w.id}
+            className="card wf-card"
+            style={{ animationDelay: `${Math.min(i, 12) * 35}ms` }}
+          >
             <div className="wf-card-head">
               <strong>{w.name}</strong>
               {w.is_template && <Chip tone="accent">template</Chip>}

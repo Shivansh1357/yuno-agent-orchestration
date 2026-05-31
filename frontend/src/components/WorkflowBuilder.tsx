@@ -29,6 +29,13 @@ function newNodeId() {
 
 const nodeTypes: NodeTypes = { agent: AgentNode }
 
+function condClass(label: unknown): string {
+  const s = typeof label === 'string' ? label : ''
+  if (s.startsWith('contains:')) return 'edge-contains'
+  if (s.startsWith('not_contains:')) return 'edge-not-contains'
+  return 'edge-always'
+}
+
 interface Props {
   workflow: Workflow | null
   agents: Agent[]
@@ -50,6 +57,7 @@ function graphToFlow(graph: WorkflowGraph): { nodes: Node[]; edges: Edge[] } {
     label: e.condition || undefined,
     type: 'smoothstep',
     animated: true,
+    className: condClass(e.condition),
   }))
   return { nodes, edges }
 }
@@ -110,7 +118,10 @@ function BuilderInner({ workflow, agents, onBack, onSaved }: Props) {
   const onConnect: OnConnect = useCallback(
     (conn: Connection) => {
       setEdges((eds) =>
-        addEdge({ ...conn, type: 'smoothstep', animated: true, label: 'always' }, eds),
+        addEdge(
+          { ...conn, type: 'smoothstep', animated: true, label: 'always', className: 'edge-always' },
+          eds,
+        ),
       )
       markDirty()
     },
@@ -152,7 +163,9 @@ function BuilderInner({ workflow, agents, onBack, onSaved }: Props) {
     if (!selectedEdge) return
     setEdges((eds) =>
       eds.map((e) =>
-        e.id === selectedEdge.id ? { ...e, label: cond || undefined } : e,
+        e.id === selectedEdge.id
+          ? { ...e, label: cond || undefined, className: condClass(cond) }
+          : e,
       ),
     )
     setSelectedEdge((prev) => (prev ? { ...prev, label: cond || undefined } : prev))
@@ -271,7 +284,7 @@ function BuilderInner({ workflow, agents, onBack, onSaved }: Props) {
             proOptions={{ hideAttribution: true }}
             defaultEdgeOptions={{ type: 'smoothstep', animated: true }}
           >
-            <Background variant={BackgroundVariant.Dots} gap={20} size={1} color="#2a2a40" />
+            <Background variant={BackgroundVariant.Dots} gap={22} size={1.4} color="rgba(255,255,255,0.09)" />
             <Controls />
             <MiniMap pannable zoomable className="flow-minimap" />
           </ReactFlow>

@@ -144,6 +144,18 @@ export default function ChatPage() {
       )}
 
       <div className="card chat-card">
+        {currentAgent && (
+          <div className="chat-header">
+            <div className="bubble-avatar">
+              {currentAgent.name.slice(0, 2).toUpperCase()}
+            </div>
+            <div className="chat-header-meta">
+              <strong>{currentAgent.name}</strong>
+              <span className="chat-sub">{currentAgent.role || 'Agent'}</span>
+            </div>
+            <span className="chat-header-model mono">{currentAgent.model}</span>
+          </div>
+        )}
         <div className="chat-scroll" ref={scrollRef}>
           {loadingHistory && <Spinner label="Loading history…" />}
           {!loadingHistory && bubbles.length === 0 && (

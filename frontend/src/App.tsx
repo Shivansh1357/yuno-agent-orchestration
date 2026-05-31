@@ -33,11 +33,12 @@ export default function App() {
           <div className="brand-mark">Y</div>
           <div className="brand-text">
             <strong>Yuno</strong>
-            <span>Agent Orchestration</span>
+            <span>Mission Control</span>
           </div>
         </div>
 
         <nav className="nav">
+          <div className="nav-section-label">Orchestration</div>
           {navItems.map((it) => (
             <NavLink
               key={it.to}
