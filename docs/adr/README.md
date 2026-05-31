@@ -13,6 +13,7 @@ options weighed, the decision, and its consequences.
 | [0005](0005-graph-as-data.md) | Store workflows as data; compile to StateGraph at runtime | Accepted |
 | [0006](0006-fastapi-react-single-origin.md) | FastAPI + React served single-origin | Accepted |
 | [0007](0007-guardrails-and-cost-tracking.md) | Guardrails + token/cost tracking in the runtime | Accepted |
+| [0008](0008-multi-provider-llm.md) | Multi-provider LLM (Anthropic + Bedrock), routed by model id | Accepted |
 
 ## Template
 

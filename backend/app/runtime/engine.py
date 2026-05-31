@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import asyncio
 import datetime as dt
+import re
 from collections import defaultdict
 from typing import Any, Optional, TypedDict
 
@@ -64,6 +65,21 @@ def _check_guardrails(agent: Agent, output: str, usage: Usage) -> Optional[str]:
     if max_cost is not None and usage.cost_usd > float(max_cost):
         return f"cost ${usage.cost_usd:.4f} exceeded guardrail ${float(max_cost):.4f}"
     return None
+
+
+_THINKING_RE = re.compile(r"<thinking>.*?</thinking>", re.DOTALL | re.IGNORECASE)
+# Unwrap <response>…</response> (keep the inner text) and drop any stray tags —
+# some Bedrock models (e.g. Nova) wrap their final answer in these.
+_RESPONSE_RE = re.compile(r"</?response>", re.IGNORECASE)
+
+
+def _clean_output(text: str) -> str:
+    """Strip reasoning/answer scaffolding some models leak into final output."""
+    if not isinstance(text, str):
+        return text
+    text = _THINKING_RE.sub("", text)
+    text = _RESPONSE_RE.sub("", text)
+    return text.strip()
 
 
 def _get_agent(session, agent_id: str) -> Agent:
@@ -155,6 +171,7 @@ async def run_agent(
 
     if isinstance(output, list):  # some providers return content blocks
         output = "".join(b.get("text", "") for b in output if isinstance(b, dict))
+    output = _clean_output(output)
 
     violation = _check_guardrails(agent, output, usage)
     if violation:

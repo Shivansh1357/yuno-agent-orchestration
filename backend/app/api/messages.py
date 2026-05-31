@@ -40,7 +40,10 @@ def meta():
         "tools": AVAILABLE_TOOLS,
         "models": list(settings.model_prices.keys()),
         "default_model": settings.default_model,
+        "default_provider": settings.default_provider,
         "llm_enabled": settings.llm_enabled,
+        "anthropic_enabled": settings.anthropic_enabled,
+        "bedrock_enabled": settings.bedrock_enabled,
         "telegram_enabled": bool(settings.telegram_bot_token),
         "channels": ["web", "telegram"],
     }

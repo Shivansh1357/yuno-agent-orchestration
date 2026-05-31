@@ -13,6 +13,7 @@ from __future__ import annotations
 
 from sqlmodel import select
 
+from ..config import settings
 from ..db import session_scope
 from ..models import Agent, Workflow
 
@@ -42,7 +43,7 @@ def _seed(s) -> None:
             "math with the calculator, and use remember/recall to keep notes "
             "about the user across the conversation."
         ),
-        model="claude-haiku-4-5-20251001",
+        model=settings.default_model,
         tools=["web_search", "calculator", "current_time", "remember", "recall"],
         channels=["telegram", "web"],
         skills=["research", "memory"],
@@ -58,7 +59,7 @@ def _seed(s) -> None:
             "You are a research analyst. Given a topic, use web_search to gather "
             "3-5 concrete, current facts with sources. Output a tight bulleted brief."
         ),
-        model="claude-haiku-4-5-20251001",
+        model=settings.default_model,
         tools=["web_search", "http_get"],
         skills=["research"],
     )
@@ -70,7 +71,7 @@ def _seed(s) -> None:
             "clear, engaging ~150-word draft. If the editor asks for revisions, "
             "incorporate them and rewrite the full piece."
         ),
-        model="claude-haiku-4-5-20251001",
+        model=settings.default_model,
         skills=["writing"],
     )
     editor = make_agent(
@@ -82,7 +83,7 @@ def _seed(s) -> None:
             "specific, actionable notes. If it is publishable, reply starting with "
             "'APPROVED:' followed by the final text. Be decisive."
         ),
-        model="claude-haiku-4-5-20251001",
+        model=settings.default_model,
         interaction_rules="Always begin your reply with either 'REVISE:' or 'APPROVED:'.",
         skills=["editing"],
     )
@@ -96,7 +97,7 @@ def _seed(s) -> None:
             "word on the first line: 'BILLING' for payments/invoices/refunds, or "
             "'TECH' for bugs/errors/how-to. Then one sentence summarizing the issue."
         ),
-        model="claude-haiku-4-5-20251001",
+        model=settings.default_model,
         interaction_rules="First line must be exactly BILLING or TECH.",
     )
     billing = make_agent(
@@ -106,7 +107,7 @@ def _seed(s) -> None:
             "You are a billing specialist. Resolve the customer's payment/invoice/"
             "refund question politely and concretely."
         ),
-        model="claude-haiku-4-5-20251001",
+        model=settings.default_model,
     )
     tech = make_agent(
         name="TechAgent",
@@ -115,7 +116,7 @@ def _seed(s) -> None:
             "You are a technical support engineer. Diagnose the issue and give "
             "clear step-by-step guidance."
         ),
-        model="claude-haiku-4-5-20251001",
+        model=settings.default_model,
         tools=["web_search"],
     )
 

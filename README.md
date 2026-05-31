@@ -91,9 +91,14 @@ EventBus — that decoupling is what makes agent-to-agent communication
   CrewAI (great for linear "crews" but conditions/loops are less first-class) and a
   custom runtime (more control, but reinventing routing/recursion safety I'd get
   for free).
-- **LLM — Anthropic Claude** via `langchain-anthropic`. `claude-haiku-4-5` by
-  default for cheap, fast demos; any configured model is selectable per agent.
-  Token usage from `usage_metadata` drives real cost tracking.
+- **LLM — multi-provider (Anthropic + AWS Bedrock).** The runtime derives the
+  provider from each agent's model id (`provider_for_model`), so agents can mix
+  **Claude** (`langchain-anthropic`) and **Bedrock** models — Amazon Nova / Meta
+  Llama via `langchain-aws` with bearer-token auth (`ChatBedrockConverse`). Pick a
+  model per agent in the UI; `DEFAULT_MODEL` sets what seeded agents use. Token
+  usage from `usage_metadata` drives real cost tracking for both. Verified live:
+  Nova Lite runs the full Content Pipeline (real tools + feedback loop) end-to-end
+  for < $0.001. See ADR-0008.
 - **Channel — Telegram** via **long-polling** (`getUpdates`). It needs **no public
   webhook or hosting** — it works behind a laptop firewall, which is ideal for a
   local-first demo. WhatsApp needs Meta Business verification; Slack needs a
@@ -113,7 +118,9 @@ EventBus — that decoupling is what makes agent-to-agent communication
 
 ```bash
 cp .env.example .env
-#  → open .env and paste your ANTHROPIC_API_KEY (required to run agents)
+#  → configure ONE LLM provider (required to run agents):
+#      • AWS Bedrock: set AWS_BEARER_TOKEN_BEDROCK (+ DEFAULT_MODEL=us.amazon.nova-lite-v1:0)
+#      • or Anthropic: set ANTHROPIC_API_KEY (+ DEFAULT_MODEL=claude-haiku-4-5-20251001)
 #  → (optional) paste TELEGRAM_BOT_TOKEN for the Telegram demo
 
 docker compose up --build

@@ -41,6 +41,24 @@ def test_meta_lists_tools_and_models(client):
     assert "calculator" in meta["tools"]
     assert "remember" in meta["tools"]
     assert meta["default_model"] in meta["models"]
+    # multi-provider surface
+    assert "anthropic_enabled" in meta and "bedrock_enabled" in meta
+    assert any(m.startswith("us.amazon.nova") for m in meta["models"])
+
+
+def test_provider_routing_by_model_id():
+    from app.runtime.llm import provider_for_model
+
+    assert provider_for_model("claude-haiku-4-5-20251001") == "anthropic"
+    assert provider_for_model("us.amazon.nova-lite-v1:0") == "bedrock"
+    assert provider_for_model("us.meta.llama3-3-70b-instruct-v1:0") == "bedrock"
+
+
+def test_output_cleaner_strips_model_scaffolding():
+    from app.runtime.engine import _clean_output
+
+    assert _clean_output("<response>441 is the answer.</response>") == "441 is the answer."
+    assert _clean_output("<thinking>compute…</thinking>APPROVED: ship") == "APPROVED: ship"
 
 
 # --------------------------------------------------------------------------- #
