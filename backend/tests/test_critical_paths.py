@@ -61,6 +61,16 @@ def test_output_cleaner_strips_model_scaffolding():
     assert _clean_output("<thinking>compute…</thinking>APPROVED: ship") == "APPROVED: ship"
 
 
+def test_telegram_markdown_to_html():
+    from app.channels.telegram import md_to_telegram_html
+
+    assert md_to_telegram_html("**18% of 2450 is 441**") == "<b>18% of 2450 is 441</b>"
+    assert md_to_telegram_html("- a\n- b") == "• a\n• b"
+    assert md_to_telegram_html("use `code`") == "use <code>code</code>"
+    # HTML-special chars are escaped so Telegram won't choke on them
+    assert "&lt;tag&gt;" in md_to_telegram_html("a <tag> & more")
+
+
 # --------------------------------------------------------------------------- #
 # 2. Workflow execution — conditions + feedback loop (LLM mocked)
 # --------------------------------------------------------------------------- #
