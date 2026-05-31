@@ -37,8 +37,20 @@ from .tools import build_agent_tools
 # --------------------------------------------------------------------------- #
 # Helpers
 # --------------------------------------------------------------------------- #
+# Global voice/style applied to every agent so replies read clearly for
+# non-technical users (rendered as Markdown in the UI / HTML in Telegram).
+_STYLE_GUIDE = (
+    "Style: write in clear, friendly, plain language a non-technical person can "
+    "understand. Avoid jargon (explain a term if you must use it). Do NOT use emoji. "
+    "Keep replies concise. Use light Markdown only when it genuinely aids clarity — "
+    "short **bold** labels and simple bullet lists; avoid big headings and tables "
+    "unless explicitly asked."
+)
+
+
 def _compose_system_prompt(agent: Agent) -> str:
     parts = [agent.system_prompt or f"You are {agent.name}, a helpful agent."]
+    parts.append(_STYLE_GUIDE)
     if agent.role:
         parts.append(f"Your role: {agent.role}.")
     if agent.interaction_rules:
