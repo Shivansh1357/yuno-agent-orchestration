@@ -36,6 +36,16 @@ def test_agent_crud(client):
     assert client.get(f"/api/agents/{aid}").status_code == 404
 
 
+def test_empty_input_rejected(client):
+    """Empty/whitespace input must 400 cleanly, not 500 from the LLM."""
+    r = client.post("/api/agents", json={"name": "EmptyProbe", "channels": ["web"]})
+    aid = r.json()["id"]
+    assert client.post("/api/chat", json={"agent_id": aid, "text": "   "}).status_code == 400
+    assert client.post("/api/chat", json={"agent_id": aid, "text": ""}).status_code == 400
+    assert client.post("/api/runs", json={"agent_id": aid, "input": "  "}).status_code == 400
+    client.delete(f"/api/agents/{aid}")
+
+
 def test_meta_lists_tools_and_models(client):
     meta = client.get("/api/meta").json()
     assert "calculator" in meta["tools"]

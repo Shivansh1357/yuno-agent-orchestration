@@ -36,6 +36,8 @@ async def create_run(payload: dict, session: Session = Depends(get_session)):
     workflow_id = payload.get("workflow_id")
     agent_id = payload.get("agent_id")
     text = payload.get("input", "")
+    if not text or not text.strip():
+        raise HTTPException(400, "input must not be empty")
     if not workflow_id and not agent_id:
         raise HTTPException(400, "provide workflow_id or agent_id")
     if workflow_id and not session.get(Workflow, workflow_id):
@@ -59,6 +61,8 @@ async def chat(payload: ChatRequest, session: Session = Depends(get_session)):
     """Synchronous web chat with a single agent (returns the reply directly)."""
     if not payload.agent_id:
         raise HTTPException(400, "agent_id is required for web chat")
+    if not payload.text or not payload.text.strip():
+        raise HTTPException(400, "message text must not be empty")
     agent = session.get(Agent, payload.agent_id)
     if not agent:
         raise HTTPException(404, "agent not found")
