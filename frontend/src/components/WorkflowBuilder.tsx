@@ -20,6 +20,7 @@ import { api } from '../api'
 import type { Agent, Workflow, WorkflowGraph } from '../types'
 import AgentNode, { type AgentNodeData } from './AgentNode'
 import { ErrorBox } from './ui'
+import { AlertTriangle, ArrowLeft, ArrowRight, Play, Plus, Save, STROKE } from '../icons'
 
 let nodeSeq = 0
 function newNodeId() {
@@ -233,7 +234,7 @@ function BuilderInner({ workflow, agents, onBack, onSaved }: Props) {
       <header className="page-head builder-head">
         <div className="builder-title">
           <button className="btn btn-ghost btn-sm" onClick={onBack}>
-            ← Back
+            <ArrowLeft size={14} strokeWidth={STROKE} /> Back
           </button>
           <input
             className="title-input"
@@ -247,16 +248,22 @@ function BuilderInner({ workflow, agents, onBack, onSaved }: Props) {
         </div>
         <div className="row gap-sm">
           <button className="btn btn-ghost" onClick={addNode}>
-            + Node
+            <Plus size={15} strokeWidth={STROKE} /> Node
           </button>
           <button className="btn btn-ghost" onClick={deleteSelected}>
             Delete selected
           </button>
           <button className="btn btn-secondary" onClick={save} disabled={saving}>
-            {saving ? 'Saving…' : 'Save'}
+            {saving ? (
+              'Saving…'
+            ) : (
+              <>
+                <Save size={15} strokeWidth={STROKE} /> Save
+              </>
+            )}
           </button>
           <button className="btn btn-primary" onClick={runWorkflow} disabled={nodes.length === 0}>
-            ▶ Run workflow
+            <Play size={15} strokeWidth={STROKE} /> Run workflow
           </button>
         </div>
       </header>
@@ -340,8 +347,9 @@ function BuilderInner({ workflow, agents, onBack, onSaved }: Props) {
             <h4>Edge condition</h4>
             {selectedEdge ? (
               <>
-                <p className="muted small">
-                  {selectedEdge.source} → {selectedEdge.target}
+                <p className="muted small edge-route-label">
+                  {selectedEdge.source}{' '}
+                  <ArrowRight size={12} strokeWidth={STROKE} /> {selectedEdge.target}
                 </p>
                 <input
                   value={typeof selectedEdge.label === 'string' ? selectedEdge.label : ''}
@@ -378,7 +386,9 @@ function BuilderInner({ workflow, agents, onBack, onSaved }: Props) {
               </li>
             </ul>
             {hasUnbound && (
-              <p className="warn-text small">⚠ Some nodes have no agent bound.</p>
+              <p className="warn-text small">
+                <AlertTriangle size={13} strokeWidth={STROKE} /> Some nodes have no agent bound.
+              </p>
             )}
           </section>
         </aside>

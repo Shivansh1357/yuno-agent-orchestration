@@ -1,17 +1,22 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 import { api } from '../api'
 import { useMonitor } from '../useMonitor'
 import { useMeta } from '../MetaContext'
 import type { Agent, Message, Run, Workflow } from '../types'
 import { Chip, EmptyState, ErrorBox, Spinner, StatusBadge } from '../components/ui'
+import { AnimatedNumber } from '../components/AnimatedNumber'
+import { Markdown } from '../components/Markdown'
+import { ArrowLeft, ArrowRight, EVENT_ICON, Play, Radio, STROKE } from '../icons'
+import { feedItem } from '../motion'
 import { fmtCost, fmtTime, fmtTokens, truncate } from '../format'
 
-const TYPE_META: Record<Message['type'], { label: string; icon: string }> = {
-  log: { label: 'log', icon: '•' },
-  agent: { label: 'agent', icon: '🤖' },
-  tool: { label: 'tool', icon: '🔧' },
-  error: { label: 'error', icon: '⚠' },
-  chat: { label: 'chat', icon: '💬' },
+const TYPE_LABEL: Record<Message['type'], string> = {
+  log: 'log',
+  agent: 'agent',
+  tool: 'tool',
+  error: 'error',
+  chat: 'chat',
 }
 
 export default function MonitorPage() {
@@ -140,6 +145,7 @@ export default function MonitorPage() {
         <div className={`conn-indicator conn-${connLabel.cls}`}>
           <span className="pill-dot" /> {connLabel.t}
         </div>
+        {/* live indicator keeps its pulse dot */}
       </header>
 
       <div className="monitor-grid">
@@ -159,7 +165,7 @@ export default function MonitorPage() {
             <div className="row gap-sm">
               {selectedRun && (
                 <button className="btn btn-ghost btn-sm" onClick={() => selectRun(selectedRun)}>
-                  ← All events
+                  <ArrowLeft size={14} strokeWidth={STROKE} /> All events
                 </button>
               )}
               {!selectedRun && (
@@ -174,52 +180,66 @@ export default function MonitorPage() {
             {runMsgLoading && <Spinner label="Loading run messages…" />}
             {!runMsgLoading && feed.length === 0 && (
               <EmptyState
-                icon="📡"
+                icon={<Radio size={28} strokeWidth={STROKE} />}
                 title="Waiting for events"
                 hint="Trigger a run to watch agents collaborate in real time."
               />
             )}
-            {feed.map((m, i) => {
-              const tm = TYPE_META[m.type]
-              const hasCost = m.cost_usd > 0 || m.input_tokens > 0 || m.output_tokens > 0
-              const delay = Math.min(i, 14) * 18
-              return (
-                <div
-                  key={m.id}
-                  className={`event event-${m.type}`}
-                  style={{ animationDelay: `${delay}ms` }}
-                >
-                  <div className="event-rail" />
-                  <div className="event-body">
-                    <div className="event-top">
-                      <span className="event-icon">{tm.icon}</span>
-                      <span className="event-route">
-                        <strong>{m.sender}</strong>
-                        {m.recipient && (
-                          <>
-                            {' '}
-                            <span className="arrow">→</span> {m.recipient}
-                          </>
-                        )}
-                      </span>
-                      <span className={`type-tag type-${m.type}`}>{tm.label}</span>
-                      <span className="event-time muted">{fmtTime(m.created_at)}</span>
-                    </div>
-                    <div className="event-content">{m.content}</div>
-                    {hasCost && (
-                      <div className="event-meta muted">
-                        {(m.input_tokens > 0 || m.output_tokens > 0) && (
-                          <span>
-                            {fmtTokens(m.input_tokens)} in · {fmtTokens(m.output_tokens)} out
-                          </span>
-                        )}
-                        {m.cost_usd > 0 && <span>{fmtCost(m.cost_usd)}</span>}
+            <AnimatePresence initial={false}>
+              {feed.map((m) => {
+                const Icon = EVENT_ICON[m.type]
+                const hasCost = m.cost_usd > 0 || m.input_tokens > 0 || m.output_tokens > 0
+                return (
+                  <motion.div
+                    key={m.id}
+                    layout="position"
+                    className={`event event-${m.type}`}
+                    variants={feedItem}
+                    initial="initial"
+                    animate="enter"
+                    exit="exit"
+                  >
+                    <div className="event-rail" />
+                    <div className="event-body">
+                      <div className="event-top">
+                        <span className="event-icon">
+                          <Icon size={14} strokeWidth={STROKE} />
+                        </span>
+                        <span className="event-route">
+                          <strong>{m.sender}</strong>
+                          {m.recipient && (
+                            <>
+                              {' '}
+                              <ArrowRight className="arrow" size={12} strokeWidth={STROKE} />{' '}
+                              {m.recipient}
+                            </>
+                          )}
+                        </span>
+                        <span className={`type-tag type-${m.type}`}>{TYPE_LABEL[m.type]}</span>
+                        <span className="event-time muted">{fmtTime(m.created_at)}</span>
                       </div>
-                    )}
-                  </div>
-                </div>
-              )
-            })}
+                      <div className="event-content">
+                        {m.type === 'agent' || m.type === 'chat' ? (
+                          <Markdown>{m.content}</Markdown>
+                        ) : (
+                          m.content
+                        )}
+                      </div>
+                      {hasCost && (
+                        <div className="event-meta muted">
+                          {(m.input_tokens > 0 || m.output_tokens > 0) && (
+                            <span>
+                              {fmtTokens(m.input_tokens)} in · {fmtTokens(m.output_tokens)} out
+                            </span>
+                          )}
+                          {m.cost_usd > 0 && <span>{fmtCost(m.cost_usd)}</span>}
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                )
+              })}
+            </AnimatePresence>
           </div>
         </section>
 
@@ -239,7 +259,7 @@ export default function MonitorPage() {
                     <optgroup label="Workflows">
                       {workflows.map((w) => (
                         <option key={w.id} value={`wf:${w.id}`}>
-                          🕸 {w.name}
+                          {w.name}
                         </option>
                       ))}
                     </optgroup>
@@ -248,7 +268,7 @@ export default function MonitorPage() {
                     <optgroup label="Agents">
                       {agents.map((a) => (
                         <option key={a.id} value={`ag:${a.id}`}>
-                          🤖 {a.name}
+                          {a.name}
                         </option>
                       ))}
                     </optgroup>
@@ -268,13 +288,20 @@ export default function MonitorPage() {
               {meta && !meta.llm_enabled && (
                 <div className="muted small">LLM is not configured — runs may fail.</div>
               )}
-              <button
+              <motion.button
                 className="btn btn-primary"
                 disabled={!target || !taskInput.trim() || triggering}
                 onClick={triggerRun}
+                whileTap={{ scale: 0.97 }}
               >
-                {triggering ? 'Starting…' : '▶ Run'}
-              </button>
+                {triggering ? (
+                  'Starting…'
+                ) : (
+                  <>
+                    <Play size={15} strokeWidth={STROKE} /> Run
+                  </>
+                )}
+              </motion.button>
             </div>
           </section>
 
@@ -285,15 +312,27 @@ export default function MonitorPage() {
             </div>
             <div className="tally">
               <div className="tally-item">
-                <span className="tally-val">{fmtTokens(totals.inputTokens)}</span>
+                <AnimatedNumber
+                  className="tally-val"
+                  value={totals.inputTokens}
+                  format={fmtTokens}
+                />
                 <span className="muted">input tokens</span>
               </div>
               <div className="tally-item">
-                <span className="tally-val">{fmtTokens(totals.outputTokens)}</span>
+                <AnimatedNumber
+                  className="tally-val"
+                  value={totals.outputTokens}
+                  format={fmtTokens}
+                />
                 <span className="muted">output tokens</span>
               </div>
               <div className="tally-item">
-                <span className="tally-val accent">{fmtCost(totals.costUsd)}</span>
+                <AnimatedNumber
+                  className="tally-val accent"
+                  value={totals.costUsd}
+                  format={fmtCost}
+                />
                 <span className="muted">cost</span>
               </div>
             </div>
@@ -309,13 +348,18 @@ export default function MonitorPage() {
               {runs.length === 0 && (
                 <EmptyState title="No runs yet" hint="Triggered runs appear here." />
               )}
-              {runs.map((r) => {
+              {runs.map((r, i) => {
                 const name = wfName(r.workflow_id) ?? agentName(r.agent_id) ?? 'unknown'
                 return (
-                  <button
+                  <motion.button
                     key={r.id}
                     className={`run-row ${selectedRun === r.id ? 'selected' : ''}`}
                     onClick={() => selectRun(r.id)}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1], delay: Math.min(i, 10) * 0.03 }}
+                    whileHover={{ y: -2 }}
+                    whileTap={{ scale: 0.99 }}
                   >
                     <div className="run-row-top">
                       <StatusBadge status={r.status} />
@@ -330,7 +374,7 @@ export default function MonitorPage() {
                       <span>{fmtCost(r.total_cost_usd)}</span>
                       <span>{fmtTime(r.started_at)}</span>
                     </div>
-                  </button>
+                  </motion.button>
                 )
               })}
             </div>

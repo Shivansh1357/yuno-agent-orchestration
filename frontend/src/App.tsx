@@ -1,9 +1,21 @@
-import { NavLink, Navigate, Route, Routes } from 'react-router-dom'
+import { NavLink, Navigate, Route, Routes, useLocation } from 'react-router-dom'
+import { AnimatePresence, motion } from 'framer-motion'
 import { useMeta } from './MetaContext'
 import MonitorPage from './pages/MonitorPage'
 import AgentsPage from './pages/AgentsPage'
 import WorkflowsPage from './pages/WorkflowsPage'
 import ChatPage from './pages/ChatPage'
+import {
+  Activity,
+  AlertTriangle,
+  Bot,
+  Hexagon,
+  MessagesSquare,
+  WorkflowIcon,
+  STROKE,
+} from './icons'
+import { pageVariants } from './motion'
+import type { LucideIcon } from 'lucide-react'
 
 function StatusPill({ label, on }: { label: string; on: boolean }) {
   return (
@@ -15,22 +27,27 @@ function StatusPill({ label, on }: { label: string; on: boolean }) {
   )
 }
 
-const navItems = [
-  { to: '/', label: 'Monitor', icon: '📡', end: true },
-  { to: '/agents', label: 'Agents', icon: '🤖', end: false },
-  { to: '/workflows', label: 'Workflows', icon: '🕸', end: false },
-  { to: '/chat', label: 'Chat', icon: '💬', end: false },
+const navItems: { to: string; label: string; Icon: LucideIcon; end: boolean }[] = [
+  { to: '/', label: 'Monitor', Icon: Activity, end: true },
+  { to: '/agents', label: 'Agents', Icon: Bot, end: false },
+  { to: '/workflows', label: 'Workflows', Icon: WorkflowIcon, end: false },
+  { to: '/chat', label: 'Chat', Icon: MessagesSquare, end: false },
 ]
 
 export default function App() {
   const { meta } = useMeta()
   const llmOff = meta != null && !meta.llm_enabled
+  const location = useLocation()
+  // Route key for AnimatePresence — only the top-level section matters.
+  const routeKey = '/' + (location.pathname.split('/')[1] ?? '')
 
   return (
     <div className="app-shell">
       <aside className="sidebar">
         <div className="brand">
-          <div className="brand-mark">Y</div>
+          <div className="brand-mark">
+            <Hexagon size={20} strokeWidth={STROKE} />
+          </div>
           <div className="brand-text">
             <strong>Yuno</strong>
             <span>Mission Control</span>
@@ -39,15 +56,26 @@ export default function App() {
 
         <nav className="nav">
           <div className="nav-section-label">Orchestration</div>
-          {navItems.map((it) => (
+          {navItems.map(({ to, label, Icon, end }) => (
             <NavLink
-              key={it.to}
-              to={it.to}
-              end={it.end}
+              key={to}
+              to={to}
+              end={end}
               className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
             >
-              <span className="nav-icon">{it.icon}</span>
-              {it.label}
+              {({ isActive }) => (
+                <motion.span
+                  className="nav-item-inner"
+                  whileHover={{ x: 2 }}
+                  whileTap={{ scale: 0.97 }}
+                  transition={{ duration: 0.15 }}
+                >
+                  <span className="nav-icon">
+                    <Icon size={18} strokeWidth={isActive ? 2 : STROKE} />
+                  </span>
+                  {label}
+                </motion.span>
+              )}
             </NavLink>
           ))}
         </nav>
@@ -66,17 +94,29 @@ export default function App() {
       <main className="main">
         {llmOff && (
           <div className="banner banner-warn">
-            ⚠ Set <code>ANTHROPIC_API_KEY</code> in <code>backend/.env</code> to run agents.
+            <AlertTriangle size={15} strokeWidth={STROKE} /> Set <code>ANTHROPIC_API_KEY</code> in{' '}
+            <code>backend/.env</code> to run agents.
           </div>
         )}
-        <Routes>
-          <Route path="/" element={<MonitorPage />} />
-          <Route path="/agents" element={<AgentsPage />} />
-          <Route path="/workflows" element={<WorkflowsPage />} />
-          <Route path="/workflows/:id" element={<WorkflowsPage />} />
-          <Route path="/chat" element={<ChatPage />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={routeKey}
+            className="route-view"
+            variants={pageVariants}
+            initial="initial"
+            animate="enter"
+            exit="exit"
+          >
+            <Routes location={location}>
+              <Route path="/" element={<MonitorPage />} />
+              <Route path="/agents" element={<AgentsPage />} />
+              <Route path="/workflows" element={<WorkflowsPage />} />
+              <Route path="/workflows/:id" element={<WorkflowsPage />} />
+              <Route path="/chat" element={<ChatPage />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </motion.div>
+        </AnimatePresence>
       </main>
     </div>
   )

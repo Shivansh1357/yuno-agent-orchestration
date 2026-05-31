@@ -1,8 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 import { api } from '../api'
 import { useMeta } from '../MetaContext'
 import type { Agent, Message } from '../types'
 import { EmptyState, ErrorBox, Spinner } from '../components/ui'
+import { MessagesSquare, SendHorizontal, STROKE } from '../icons'
+import { Markdown } from '../components/Markdown'
+import { bubbleItem } from '../motion'
 import { fmtCost, fmtTokens } from '../format'
 
 interface Bubble {
@@ -160,42 +164,63 @@ export default function ChatPage() {
           {loadingHistory && <Spinner label="Loading history…" />}
           {!loadingHistory && bubbles.length === 0 && (
             <EmptyState
-              icon="💬"
+              icon={<MessagesSquare size={28} strokeWidth={STROKE} />}
               title={currentAgent ? `Say hi to ${currentAgent.name}` : 'Select an agent'}
               hint={currentAgent?.role || 'Start a conversation below.'}
             />
           )}
-          {bubbles.map((b) => (
-            <div key={b.id} className={`bubble-row ${b.role}`}>
-              {b.role === 'agent' && (
-                <div className="bubble-avatar">
-                  {(currentAgent?.name ?? 'A').slice(0, 2).toUpperCase()}
-                </div>
-              )}
-              <div className={`bubble bubble-${b.role}`}>
-                {b.pending ? (
-                  <span className="thinking">
-                    <span className="dot" />
-                    <span className="dot" />
-                    <span className="dot" />
-                    agent is thinking…
-                  </span>
-                ) : (
-                  <span className="bubble-text">{b.text}</span>
-                )}
-                {!b.pending && (b.cost != null || b.inTok != null) && (
-                  <div className="bubble-foot muted">
-                    {(b.inTok || b.outTok) && (
-                      <span>
-                        {fmtTokens(b.inTok ?? 0)} in · {fmtTokens(b.outTok ?? 0)} out
-                      </span>
-                    )}
-                    {b.cost != null && <span>{fmtCost(b.cost)}</span>}
+          <AnimatePresence initial={false}>
+            {bubbles.map((b) => (
+              <motion.div
+                key={b.id}
+                layout="position"
+                className={`bubble-row ${b.role}`}
+                variants={bubbleItem}
+                initial="initial"
+                animate="enter"
+              >
+                {b.role === 'agent' && (
+                  <div className="bubble-avatar">
+                    {(currentAgent?.name ?? 'A').slice(0, 2).toUpperCase()}
                   </div>
                 )}
-              </div>
-            </div>
-          ))}
+                <div className={`bubble bubble-${b.role}`}>
+                  {b.pending ? (
+                    <span className="thinking">
+                      <motion.span
+                        className="dot"
+                        animate={{ y: [0, -4, 0], opacity: [0.4, 1, 0.4] }}
+                        transition={{ duration: 1, repeat: Infinity, ease: 'easeInOut' }}
+                      />
+                      <motion.span
+                        className="dot"
+                        animate={{ y: [0, -4, 0], opacity: [0.4, 1, 0.4] }}
+                        transition={{ duration: 1, repeat: Infinity, ease: 'easeInOut', delay: 0.15 }}
+                      />
+                      <motion.span
+                        className="dot"
+                        animate={{ y: [0, -4, 0], opacity: [0.4, 1, 0.4] }}
+                        transition={{ duration: 1, repeat: Infinity, ease: 'easeInOut', delay: 0.3 }}
+                      />
+                      agent is thinking…
+                    </span>
+                  ) : (
+                    <Markdown className="bubble-text">{b.text}</Markdown>
+                  )}
+                  {!b.pending && (b.cost != null || b.inTok != null) && (
+                    <div className="bubble-foot muted">
+                      {(b.inTok || b.outTok) && (
+                        <span>
+                          {fmtTokens(b.inTok ?? 0)} in · {fmtTokens(b.outTok ?? 0)} out
+                        </span>
+                      )}
+                      {b.cost != null && <span>{fmtCost(b.cost)}</span>}
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </div>
 
         {err && (
@@ -223,7 +248,8 @@ export default function ChatPage() {
             onClick={send}
             disabled={!agentId || !text.trim() || sending}
           >
-            {sending ? '…' : 'Send'}
+            <SendHorizontal size={16} strokeWidth={STROKE} />
+            {sending ? 'Sending…' : 'Send'}
           </button>
         </div>
       </div>

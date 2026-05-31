@@ -1,5 +1,6 @@
 import { Handle, Position, type NodeProps } from '@xyflow/react'
 import type { Agent } from '../types'
+import { Bot, STROKE } from '../icons'
 
 export interface AgentNodeData extends Record<string, unknown> {
   label: string
@@ -18,7 +19,9 @@ export default function AgentNode({ id, data, selected }: NodeProps) {
     <div className={`flow-node ${d.isEntry ? 'is-entry' : ''} ${selected ? 'is-selected' : ''}`}>
       <Handle type="target" position={Position.Left} className="flow-handle" />
       <div className="flow-node-head">
-        <span className="flow-node-icon">🤖</span>
+        <span className="flow-node-icon">
+          <Bot size={15} strokeWidth={STROKE} />
+        </span>
         <span className="flow-node-title">{agent?.name ?? d.label ?? 'Unbound'}</span>
         {d.isEntry && <span className="entry-tag">entry</span>}
       </div>

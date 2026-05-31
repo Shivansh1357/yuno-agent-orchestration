@@ -226,6 +226,9 @@ code {
   box-shadow: 0 4px 16px var(--accent-glow), inset 0 1px 0 rgba(255, 255, 255, 0.35);
   position: relative;
 }
+.brand-mark svg {
+  color: #04130d;
+}
 .brand-text {
   display: flex;
   flex-direction: column;
@@ -291,11 +294,21 @@ code {
   background: var(--accent);
   box-shadow: 0 0 10px var(--accent-glow);
 }
+.nav-item-inner {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+}
 .nav-icon {
-  font-size: 15px;
   width: 20px;
-  text-align: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   opacity: 0.9;
+}
+.nav-item.active .nav-icon {
+  opacity: 1;
 }
 
 .sidebar-footer {
@@ -371,10 +384,23 @@ code {
   flex-direction: column;
 }
 
+.route-view {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
 .banner {
   padding: 10px 22px;
   font-size: 13px;
   font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.banner svg {
+  flex: none;
 }
 .banner-warn {
   background: var(--tool-soft);
@@ -392,7 +418,6 @@ code {
   max-width: 1500px;
   width: 100%;
   margin: 0 auto;
-  animation: rise 0.34s var(--ease) both;
 }
 .page-head {
   display: flex;
@@ -484,8 +509,11 @@ code {
   color: var(--muted);
   font-size: 15px;
   cursor: pointer;
-  padding: 4px 8px;
+  padding: 6px;
   border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   transition: all 0.14s var(--ease);
 }
 .icon-btn:hover {
@@ -664,6 +692,11 @@ input[type='checkbox'] {
 .empty-action {
   margin-top: 12px;
 }
+.error-box-msg {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
 .error-box {
   display: flex;
   align-items: center;
@@ -727,12 +760,11 @@ input[type='checkbox'] {
   align-items: center;
   gap: 5px;
 }
-.status-badge::before {
-  content: '';
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: currentColor;
+.status-badge-icon {
+  flex: none;
+}
+.spin-icon {
+  animation: spin 0.9s linear infinite;
 }
 .status-pending {
   background: var(--log-soft);
@@ -838,7 +870,6 @@ input[type='checkbox'] {
   padding: 10px 8px;
   border-radius: 10px;
   border-bottom: 1px solid var(--border-faint);
-  animation: feedIn 0.26s var(--ease) both;
   transition: background 0.14s var(--ease);
 }
 .event:hover {
@@ -880,13 +911,32 @@ input[type='checkbox'] {
   margin-bottom: 4px;
 }
 .event-icon {
-  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+}
+.event-log .event-icon {
+  color: var(--grey);
+}
+.event-agent .event-icon {
+  color: var(--accent);
+}
+.event-tool .event-icon {
+  color: var(--tool);
+}
+.event-error .event-icon {
+  color: var(--error);
+}
+.event-chat .event-icon {
+  color: var(--chat);
 }
 .event-route {
   font-size: 12.5px;
   font-family: var(--mono);
   letter-spacing: -0.02em;
   color: var(--text-dim);
+  display: inline-flex;
+  align-items: center;
 }
 .event-route strong {
   color: var(--text);
@@ -894,7 +944,9 @@ input[type='checkbox'] {
 }
 .event-route .arrow {
   color: var(--accent);
-  margin: 0 2px;
+  margin: 0 3px;
+  vertical-align: middle;
+  display: inline-block;
 }
 .event-time {
   margin-left: auto;
@@ -1076,13 +1128,10 @@ input[type='checkbox'] {
   display: flex;
   flex-direction: column;
   gap: 11px;
-  transition: border-color 0.16s var(--ease), transform 0.16s var(--ease),
-    box-shadow 0.16s var(--ease);
-  animation: rise 0.34s var(--ease) both;
+  transition: border-color 0.16s var(--ease), box-shadow 0.16s var(--ease);
 }
 .agent-card:hover {
   border-color: var(--border-strong);
-  transform: translateY(-3px);
   box-shadow: var(--shadow);
 }
 .agent-card-head {
@@ -1305,13 +1354,10 @@ input[type='checkbox'] {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  transition: border-color 0.16s var(--ease), transform 0.16s var(--ease),
-    box-shadow 0.16s var(--ease);
-  animation: rise 0.34s var(--ease) both;
+  transition: border-color 0.16s var(--ease), box-shadow 0.16s var(--ease);
 }
 .wf-card:hover {
   border-color: var(--border-strong);
-  transform: translateY(-3px);
   box-shadow: var(--shadow);
 }
 .wf-card-head {
@@ -1337,6 +1383,12 @@ input[type='checkbox'] {
   font-family: var(--mono);
   font-size: 11px;
   letter-spacing: -0.02em;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.wf-stats span svg {
+  opacity: 0.7;
 }
 
 /* ---------- Builder ---------- */
@@ -1860,3 +1912,29 @@ input[type='checkbox'] {
     transition-duration: 0.001ms !important;
   }
 }
+
+/* ── Rendered Markdown (agent replies in Chat + Monitor) ───────────────── */
+.md { line-height: 1.6; }
+.md > :first-child { margin-top: 0; }
+.md > :last-child { margin-bottom: 0; }
+.md p { margin: 0 0 0.55em; }
+.md h1, .md h2, .md h3, .md h4 { margin: 0.7em 0 0.35em; font-weight: 600; line-height: 1.3; }
+.md h1 { font-size: 1.12em; } .md h2 { font-size: 1.06em; } .md h3 { font-size: 1em; }
+.md ul, .md ol { margin: 0.35em 0 0.55em; padding-left: 1.2em; }
+.md li { margin: 0.18em 0; }
+.md li::marker { color: var(--accent, #34e3a3); }
+.md strong { font-weight: 600; }
+.md a { color: var(--accent, #34e3a3); text-decoration: underline; text-underline-offset: 2px; }
+.md code { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 0.88em;
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 5px; padding: 0.05em 0.35em; }
+.md pre { background: #0c0e13; border: 1px solid rgba(255,255,255,0.08); border-radius: 10px;
+  padding: 0.7em 0.9em; overflow-x: auto; margin: 0.5em 0; }
+.md pre code { background: none; border: 0; padding: 0; font-size: 0.85em; }
+.md table { border-collapse: collapse; width: 100%; margin: 0.5em 0; font-size: 0.9em;
+  display: block; overflow-x: auto; }
+.md th, .md td { border: 1px solid rgba(255,255,255,0.1); padding: 0.35em 0.6em; text-align: left; }
+.md th { background: rgba(255,255,255,0.04); font-weight: 600; }
+.md blockquote { border-left: 3px solid var(--accent, #34e3a3); margin: 0.5em 0;
+  padding: 0.1em 0.8em; color: var(--muted, #9aa4b2); }
+.md hr { border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 0.8em 0; }

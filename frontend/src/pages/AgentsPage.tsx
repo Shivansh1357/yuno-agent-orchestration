@@ -1,8 +1,21 @@
 import { useEffect, useState } from 'react'
+import { motion } from 'framer-motion'
 import { api } from '../api'
 import { useMeta } from '../MetaContext'
 import type { Agent, AgentInput } from '../types'
 import { Chip, EmptyState, ErrorBox, Modal, Spinner, Toggle } from '../components/ui'
+import {
+  AlertTriangle,
+  Bot,
+  Brain,
+  channelIcon,
+  Pencil,
+  Plus,
+  STROKE,
+  toolIcon,
+  Trash2,
+} from '../icons'
+import { hoverLift, tapScale } from '../motion'
 
 const CHANNEL_OPTIONS = ['web', 'telegram']
 
@@ -65,21 +78,25 @@ export default function AgentsPage() {
           <h1>Agents</h1>
           <p className="muted">Configure autonomous agents — model, tools, guardrails and more.</p>
         </div>
-        <button className="btn btn-primary" onClick={() => setEditing('new')}>
-          + New agent
-        </button>
+        <motion.button
+          className="btn btn-primary"
+          onClick={() => setEditing('new')}
+          whileTap={tapScale}
+        >
+          <Plus size={15} strokeWidth={STROKE} /> New agent
+        </motion.button>
       </header>
 
       {loading && <Spinner label="Loading agents…" />}
       {error && !loading && <ErrorBox message={error} onRetry={load} />}
       {!loading && !error && agents.length === 0 && (
         <EmptyState
-          icon="🤖"
+          icon={<Bot size={28} strokeWidth={STROKE} />}
           title="No agents yet"
           hint="Create your first agent to start orchestrating."
           action={
             <button className="btn btn-primary" onClick={() => setEditing('new')}>
-              + New agent
+              <Plus size={15} strokeWidth={STROKE} /> New agent
             </button>
           }
         />
@@ -87,10 +104,13 @@ export default function AgentsPage() {
 
       <div className="agent-grid">
         {agents.map((a, i) => (
-          <div
+          <motion.div
             key={a.id}
             className="card agent-card"
-            style={{ animationDelay: `${Math.min(i, 12) * 35}ms` }}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1], delay: Math.min(i, 12) * 0.035 }}
+            whileHover={hoverLift}
           >
             <div className="agent-card-head">
               <div className="agent-avatar">{a.name.slice(0, 2).toUpperCase()}</div>
@@ -102,31 +122,41 @@ export default function AgentsPage() {
             <div className="agent-model muted small mono">{a.model}</div>
             {a.tools.length > 0 && (
               <div className="chip-row">
-                {a.tools.slice(0, 4).map((t) => (
-                  <Chip key={t} tone="tool">
-                    🔧 {t}
-                  </Chip>
-                ))}
+                {a.tools.slice(0, 4).map((t) => {
+                  const ToolIcon = toolIcon(t)
+                  return (
+                    <Chip key={t} tone="tool">
+                      <ToolIcon size={12} strokeWidth={STROKE} /> {t}
+                    </Chip>
+                  )
+                })}
                 {a.tools.length > 4 && <Chip>+{a.tools.length - 4}</Chip>}
               </div>
             )}
             <div className="chip-row">
-              {a.channels.map((c) => (
-                <Chip key={c} tone="channel">
-                  {c}
+              {a.channels.map((c) => {
+                const ChannelIcon = channelIcon(c)
+                return (
+                  <Chip key={c} tone="channel">
+                    <ChannelIcon size={12} strokeWidth={STROKE} /> {c}
+                  </Chip>
+                )
+              })}
+              {a.memory_enabled && (
+                <Chip tone="accent">
+                  <Brain size={12} strokeWidth={STROKE} /> memory
                 </Chip>
-              ))}
-              {a.memory_enabled && <Chip tone="accent">memory</Chip>}
+              )}
             </div>
             <div className="agent-card-actions">
               <button className="btn btn-ghost btn-sm" onClick={() => setEditing(a)}>
-                Edit
+                <Pencil size={14} strokeWidth={STROKE} /> Edit
               </button>
               <button className="btn btn-danger-ghost btn-sm" onClick={() => setConfirmDelete(a)}>
-                Delete
+                <Trash2 size={14} strokeWidth={STROKE} /> Delete
               </button>
             </div>
-          </div>
+          </motion.div>
         ))}
       </div>
 
@@ -274,7 +304,11 @@ function AgentEditor({
       wide
       footer={
         <>
-          {err && <span className="footer-err">⚠ {err}</span>}
+          {err && (
+            <span className="footer-err">
+              <AlertTriangle size={14} strokeWidth={STROKE} /> {err}
+            </span>
+          )}
           <button className="btn btn-ghost" onClick={onClose}>
             Cancel
           </button>

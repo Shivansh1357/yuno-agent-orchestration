@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react'
+import { motion } from 'framer-motion'
 import { api } from '../api'
 import type { Agent, Workflow } from '../types'
 import { Chip, EmptyState, ErrorBox, Modal, Spinner } from '../components/ui'
+import { ArrowRight, Circle, Plus, STROKE, Trash2, WorkflowIcon } from '../icons'
+import { hoverLift, tapScale } from '../motion'
 import { fmtDate } from '../format'
 import WorkflowBuilder from '../components/WorkflowBuilder'
 
@@ -83,21 +86,25 @@ export default function WorkflowsPage() {
           <h1>Workflows</h1>
           <p className="muted">Compose multi-agent graphs with conditional routing.</p>
         </div>
-        <button className="btn btn-primary" onClick={() => setCreating(true)}>
-          + New workflow
-        </button>
+        <motion.button
+          className="btn btn-primary"
+          onClick={() => setCreating(true)}
+          whileTap={tapScale}
+        >
+          <Plus size={15} strokeWidth={STROKE} /> New workflow
+        </motion.button>
       </header>
 
       {loading && <Spinner label="Loading workflows…" />}
       {error && !loading && <ErrorBox message={error} onRetry={load} />}
       {!loading && !error && workflows.length === 0 && (
         <EmptyState
-          icon="🕸"
+          icon={<WorkflowIcon size={28} strokeWidth={STROKE} />}
           title="No workflows yet"
           hint="Build a graph of agents that pass work between each other."
           action={
             <button className="btn btn-primary" onClick={() => setCreating(true)}>
-              + New workflow
+              <Plus size={15} strokeWidth={STROKE} /> New workflow
             </button>
           }
         />
@@ -105,10 +112,13 @@ export default function WorkflowsPage() {
 
       <div className="wf-grid">
         {workflows.map((w, i) => (
-          <div
+          <motion.div
             key={w.id}
             className="card wf-card"
-            style={{ animationDelay: `${Math.min(i, 12) * 35}ms` }}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1], delay: Math.min(i, 12) * 0.035 }}
+            whileHover={hoverLift}
           >
             <div className="wf-card-head">
               <strong>{w.name}</strong>
@@ -116,8 +126,12 @@ export default function WorkflowsPage() {
             </div>
             <p className="muted wf-desc">{w.description || 'No description.'}</p>
             <div className="wf-stats muted small">
-              <span>🔵 {w.graph.nodes.length} nodes</span>
-              <span>➜ {w.graph.edges.length} edges</span>
+              <span>
+                <Circle size={11} strokeWidth={STROKE} /> {w.graph.nodes.length} nodes
+              </span>
+              <span>
+                <ArrowRight size={12} strokeWidth={STROKE} /> {w.graph.edges.length} edges
+              </span>
               <span>{fmtDate(w.updated_at)}</span>
             </div>
             <div className="agent-card-actions">
@@ -125,10 +139,10 @@ export default function WorkflowsPage() {
                 Open builder
               </button>
               <button className="btn btn-danger-ghost btn-sm" onClick={() => setConfirmDelete(w)}>
-                Delete
+                <Trash2 size={14} strokeWidth={STROKE} /> Delete
               </button>
             </div>
-          </div>
+          </motion.div>
         ))}
       </div>
 
