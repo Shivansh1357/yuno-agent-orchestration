@@ -29,12 +29,15 @@ def init_db() -> None:
 
 def get_session() -> Iterator[Session]:
     """FastAPI dependency that yields a request-scoped session."""
-    with Session(engine) as session:
+    # expire_on_commit=False keeps ORM objects usable after commit/close — the
+    # runtime and channels load an entity, commit a Run, then hand the entity to
+    # the async engine; without this, attribute access raises DetachedInstanceError.
+    with Session(engine, expire_on_commit=False) as session:
         yield session
 
 
 @contextmanager
 def session_scope() -> Iterator[Session]:
     """Context-managed session for use outside the request cycle (runtime, channels)."""
-    with Session(engine) as session:
+    with Session(engine, expire_on_commit=False) as session:
         yield session

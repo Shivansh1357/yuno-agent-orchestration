@@ -181,6 +181,35 @@ async def test_workflow_conditional_branch(monkeypatch):
 # 3. Message delivery — persistence + live bus fan-out
 # --------------------------------------------------------------------------- #
 @pytest.mark.asyncio
+async def test_dispatch_inbound_survives_commit(monkeypatch):
+    """Regression: committing the Run must not detach the agent used afterwards.
+
+    Reproduces the Telegram-path DetachedInstanceError — dispatch_inbound loads an
+    agent, commits a Run (which expires ORM objects unless expire_on_commit=False),
+    then hands the agent to the runtime, which reads its attributes.
+    """
+    from app.channels import base
+    from app.db import session_scope
+    from app.models import Agent
+    from app.runtime.llm import Usage
+
+    with session_scope() as s:
+        s.add(Agent(name="TgBot", system_prompt="hi", channels=["telegram"]))
+        s.commit()
+
+    async def fake_run_agent(agent, task, **kw):
+        # Exactly the access pattern that raised DetachedInstanceError.
+        _ = (agent.name, agent.system_prompt, agent.tools, agent.model)
+        return f"echo:{task}", Usage()
+
+    monkeypatch.setattr(base, "run_agent", fake_run_agent)
+    reply = await base.dispatch_inbound(
+        "ping", channel="telegram", session_ref="t1", target="TgBot"
+    )
+    assert reply == "echo:ping"
+
+
+@pytest.mark.asyncio
 async def test_message_delivery_persists_and_broadcasts():
     from app.db import session_scope
     from app.models import Message, MessageType
