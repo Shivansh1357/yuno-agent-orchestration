@@ -13,6 +13,10 @@ token/cost), and the whole thing runs locally with **one command**.
 ### 🔗 Live demo: **https://yuno-agent-orchestration-zkju.onrender.com**
 *(Hosted on Render's free tier — the first request after idle may cold-start for ~30–60s, then it's instant.)*
 
+![Yuno platform — end-to-end demo](docs/img/demo.gif)
+
+<sub>Trigger a multi-agent run and watch it stream live → browse agents → the visual workflow builder → chat with an agent (replies render as formatted Markdown).</sub>
+
 ![Monitor — live event stream](docs/img/monitor.png)
 ![Visual workflow builder](docs/img/workflows.png)
 
