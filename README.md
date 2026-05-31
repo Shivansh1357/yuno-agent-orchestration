@@ -10,6 +10,12 @@ token/cost), and the whole thing runs locally with **one command**.
 
 > Built for the Yuno AI Engineer hiring challenge.
 
+### 🔗 Live demo: **https://yuno-agent-orchestration-zkju.onrender.com**
+*(Hosted on Render's free tier — the first request after idle may cold-start for ~30–60s, then it's instant.)*
+
+![Monitor — live event stream](docs/img/monitor.png)
+![Visual workflow builder](docs/img/workflows.png)
+
 ---
 
 ## 1. What it does (mapped to the brief)
